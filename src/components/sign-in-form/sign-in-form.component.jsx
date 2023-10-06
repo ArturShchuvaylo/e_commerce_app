@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { signInWithGooglePopup } from "../../utils/firebase/firebase";
-
 import FormInput from "../form-input/form-input.component";
 import Button from "../button/button.component";
-import { createUserDocumentFromAuth } from "../../utils/firebase/firebase";
+
+import {
+  signInAuthUserWithEmailAndPassword,
+  signInWithGooglePopup,
+} from "../../utils/firebase/firebase";
 
 import "./sign-in-form.styles.scss";
 
@@ -16,13 +18,28 @@ const SignInForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const { email, password } = formFields;
 
-  const testGooglePopup = async () => {
-    const { user } = await signInWithGooglePopup();
-    createUserDocumentFromAuth(user);
-    // console.log(response);
+  const resetFormFields = () => {
+    setFormFields(defaultFormFields);
   };
+
+  const signInWithGoogle = async () => {
+    await signInWithGooglePopup();
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      await signInAuthUserWithEmailAndPassword(email, password);
+      resetFormFields();
+    } catch (error) {
+      console.log("user sign in failed", error);
+    }
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setFormFields({ ...formFields, [name]: value });
   };
 
@@ -30,7 +47,7 @@ const SignInForm = () => {
     <div className="sign-in-container">
       <h2>Already have an account?</h2>
       <span>Sign in with your email and password</span>
-      <form>
+      <form onSubmit={handleSubmit}>
         <FormInput
           label="Email"
           type="email"
@@ -50,10 +67,9 @@ const SignInForm = () => {
         />
         <div className="buttons-container">
           <Button type="submit">Sign In</Button>
-          <Button buttonType="google" type="button">
+          <Button buttonType="google" type="button" onClick={signInWithGoogle}>
             Sign In With Google
           </Button>
-          <button onClick={testGooglePopup}>CLICK_here</button>
         </div>
       </form>
     </div>
